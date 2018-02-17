@@ -3,13 +3,21 @@ const puppeteer = require('puppeteer');
 const options = { args: ['--enable-precise-memory-info'] };
 
 module.exports = async function(req, res) {
-    const fileString = req.body.collinear;
-    const file = Buffer.from(fileString, 'base64').toString('utf8');
-    console.log('File', file);
+    try {
+        const fileString = req.body.collinear;
+        const file = Buffer.from(fileString, 'base64').toString('utf8');
+        console.log('File', file);
 
-    await fs.writeFile('web/collinear.js', file);
-    const report = await perf();
-    res.send('Submitted successfully ' + JSON.stringify(report));
+        await fs.writeFile('web/collinear.js', file);
+        const report = await perf();
+        res.send('Submitted successfully ' + JSON.stringify(report));
+    } catch (err) {
+        if (err.message) {
+            res.send('Error: ' + err.message);
+        } else {
+            res.send('Unknown Error');
+        }
+    }
 };
 
 async function getReport(page) {
