@@ -91,4 +91,23 @@ describe('Collinear', () => {
         expect(outputContainsLine(output, {x: 3, y: 0}, {x:20, y:0}))
             .toEqual(true);
     });
+
+    it('should find either ends of a 5 point collinearity', () => {
+        const input ={};
+        input.points = [
+            {x: 10, y:0},
+            {x: 0, y:10},
+            {x: 3, y:7},
+            {x: 7, y:3},
+            {x: 3, y:4},
+            {x: 14, y:15},
+            {x: 6, y:7},
+            {x: -2, y:12},
+        ];
+
+        const output = collinear(input);
+        expect(output.length).toEqual(1);
+        expect(outputContainsLine(output, {x: -2, y: 12}, {x:10, y:0}))
+            .toEqual(true);
+    });
 });
