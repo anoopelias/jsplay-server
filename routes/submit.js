@@ -110,6 +110,7 @@ async function runSpec() {
 
         const jasmine = new Jasmine();
         const reporter = new JasmineReporter();
+        jasmine.randomizeTests(false);
 
         reporter.onDone = function() {
             resolve({
