@@ -22,32 +22,32 @@ describe('Collinear', () => {
     it('should find either ends of a collinear points line segment', () => {
         const input = {};
         input.points = [
-            {x: 10, y:0},
-            {x: 0, y:10},
-            {x: 3, y:7},
-            {x: 7, y:3},
-            {x: 20, y:21},
-            {x: 3, y:4},
-            {x: 14, y:15},
-            {x: 6, y:7},
+            {x:10, y:0},
+            {x:0, y:10},
+            {x:3, y:7},
+            {x:7, y:3},
+            {x:20, y:21},
+            {x:3, y:4},
+            {x:14, y:15},
+            {x:6, y:7},
         ];
 
         const output = collinear(input);
         expect(output.length).toEqual(2);
-        expect(outputContainsLine(output, {x: 10, y: 0}, {x:0, y:10}))
+        expect(outputContainsLine(output, {x:10, y:0}, {x:0, y:10}))
             .toEqual(true);
-        expect(outputContainsLine(output, {x: 3, y: 4}, {x:20, y:21}))
+        expect(outputContainsLine(output, {x:3, y:4}, {x:20, y:21}))
             .toEqual(true);
     });
 
     it('should not a find a line unless there are four collinear points in it', () => {
         const input = {};
         input.points = [
-            {x: 3, y:7},
-            {x: 3, y:4},
-            {x: 14, y:15},
-            {x: 6, y:7},
-            {x: 3, y:5},
+            {x:3, y:7},
+            {x:3, y:4},
+            {x:14, y:15},
+            {x:6, y:7},
+            {x:3, y:5},
         ];
 
         const output = collinear(input);
@@ -57,74 +57,74 @@ describe('Collinear', () => {
     it('should find vertical line', () => {
         const input = {};
         input.points = [
-            {x: 3, y:7},
-            {x: 3, y:4},
-            {x: 14, y:15},
-            {x: 6, y:7},
-            {x: 3, y:10},
-            {x: 3, y:5},
+            {x:3, y:7},
+            {x:3, y:4},
+            {x:14, y:15},
+            {x:6, y:7},
+            {x:3, y:10},
+            {x:3, y:5},
         ];
 
         const output = collinear(input);
         expect(output.length).toEqual(1);
-        expect(outputContainsLine(output, {x: 3, y: 4}, {x:3, y:10}))
+        expect(outputContainsLine(output, {x:3, y:4}, {x:3, y:10}))
             .toEqual(true);
     });
 
     it('should find horizontal line', () => {
         const input = {};
         input.points = [
-            {x: 10, y:0},
-            {x: 3, y:0},
-            {x: 7, y:3},
-            {x: 20, y:0},
-            {x: 3, y:4},
-            {x: 14, y:15},
-            {x: 6, y:0},
+            {x:10, y:0},
+            {x:3, y:0},
+            {x:7, y:3},
+            {x:20, y:0},
+            {x:3, y:4},
+            {x:14, y:15},
+            {x:6, y:0},
         ];
 
         const output = collinear(input);
         expect(output.length).toEqual(1);
-        expect(outputContainsLine(output, {x: 3, y: 0}, {x:20, y:0}))
+        expect(outputContainsLine(output, {x:3, y:0}, {x:20, y:0}))
             .toEqual(true);
     });
 
     it('should find either ends of a 5 point collinearity', () => {
         const input = {};
         input.points = [
-            {x: 10, y:0},
-            {x: 0, y:10},
-            {x: 3, y:7},
-            {x: 7, y:3},
-            {x: 3, y:4},
-            {x: 14, y:15},
-            {x: 6, y:7},
-            {x: -2, y:12},
+            {x:10, y:0},
+            {x:0, y:10},
+            {x:3, y:7},
+            {x:7, y:3},
+            {x:3, y:4},
+            {x:14, y:15},
+            {x:6, y:7},
+            {x:-2, y:12},
         ];
 
         const output = collinear(input);
         expect(output.length).toEqual(1);
-        expect(outputContainsLine(output, {x: -2, y: 12}, {x:10, y:0}))
+        expect(outputContainsLine(output, {x:-2, y:12}, {x:10, y:0}))
             .toEqual(true);
     });
 
     it('should find two lines going through a point', () => {
         const input = {};
         input.points = [
-            {x: 5, y:5},
-            {x: 10, y:0},
-            {x: 7, y:7},
-            {x: 0, y:10},
-            {x: 12, y:12},
-            {x: 3, y:7},
-            {x: 10, y:10},
+            {x:5, y:5},
+            {x:10, y:0},
+            {x:7, y:7},
+            {x:0, y:10},
+            {x:12, y:12},
+            {x:3, y:7},
+            {x:10, y:10},
         ];
 
         const output = collinear(input);
         expect(output.length).toEqual(2);
-        expect(outputContainsLine(output, {x: 10, y: 0}, {x:0, y:10}))
+        expect(outputContainsLine(output, {x:10, y:0}, {x:0, y:10}))
             .toEqual(true);
-        expect(outputContainsLine(output, {x: 12, y: 12}, {x:5, y:5}))
+        expect(outputContainsLine(output, {x:12, y:12}, {x:5, y:5}))
             .toEqual(true);
     });
 });

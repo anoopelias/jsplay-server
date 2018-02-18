@@ -12,7 +12,7 @@ module.exports = async function(req, res) {
 
         let report = '';
         const specReport = await runSpec();
-        res.send('Submitted successfully ' + JSON.stringify(specReport));
+        res.send(strSpecReport(specReport));
 
         // const report = await perf();
         // res.send('Submitted successfully ' + JSON.stringify(report));
@@ -24,6 +24,22 @@ module.exports = async function(req, res) {
         }
     }
 };
+
+function cfl(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function strSpecReport(specReport) {
+    let str = '\nFunctional Tests: \n';
+
+    for (let spec of specReport.report) {
+        str += cfl(spec.status) + ' : ' + spec.name + '\n';
+    }
+
+    str += '\nOverall Status: ' + cfl(specReport.status) + '\n\n';
+
+    return str;
+}
 
 async function getReport(page) {
     const report = {};
@@ -69,10 +85,13 @@ async function perf() {
 }
 
 function JasmineReporter() {
-    this.report = '';
+    this.report = [];
 
     this.specDone = function(spec) {
-        this.report += spec.fullName + ' : ' + spec.status + '\n';
+        this.report.push({
+            name: spec.fullName,
+            status: spec.status,
+        });
     };
 
     this.jasmineDone = function(result) {
