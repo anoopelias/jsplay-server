@@ -10,7 +10,6 @@ function outputContainsLine(output, pointA, pointB) {
         if (line.length === 2 &&
             line.find(point => isEqual(point, pointA)) &&
             line.find(point => isEqual(point, pointB))) {
-            console.log('Returning true::::')
 
             return true;
         }
@@ -21,7 +20,7 @@ function outputContainsLine(output, pointA, pointB) {
 
 describe('Collinear', () => {
     it('should find either ends of a collinear points line segment', () => {
-        const input ={};
+        const input = {};
         input.points = [
             {x: 10, y:0},
             {x: 0, y:10},
@@ -42,7 +41,7 @@ describe('Collinear', () => {
     });
 
     it('should not a find a line unless there are four collinear points in it', () => {
-        const input ={};
+        const input = {};
         input.points = [
             {x: 3, y:7},
             {x: 3, y:4},
@@ -52,12 +51,11 @@ describe('Collinear', () => {
         ];
 
         const output = collinear(input);
-        console.log('output', output);
         expect(output.length).toEqual(0);
     });
 
     it('should find vertical line', () => {
-        const input ={};
+        const input = {};
         input.points = [
             {x: 3, y:7},
             {x: 3, y:4},
@@ -68,14 +66,13 @@ describe('Collinear', () => {
         ];
 
         const output = collinear(input);
-        console.log('output', output);
         expect(output.length).toEqual(1);
         expect(outputContainsLine(output, {x: 3, y: 4}, {x:3, y:10}))
             .toEqual(true);
     });
 
     it('should find horizontal line', () => {
-        const input ={};
+        const input = {};
         input.points = [
             {x: 10, y:0},
             {x: 3, y:0},
@@ -93,7 +90,7 @@ describe('Collinear', () => {
     });
 
     it('should find either ends of a 5 point collinearity', () => {
-        const input ={};
+        const input = {};
         input.points = [
             {x: 10, y:0},
             {x: 0, y:10},
@@ -108,6 +105,26 @@ describe('Collinear', () => {
         const output = collinear(input);
         expect(output.length).toEqual(1);
         expect(outputContainsLine(output, {x: -2, y: 12}, {x:10, y:0}))
+            .toEqual(true);
+    });
+
+    it('should find two lines going through a point', () => {
+        const input = {};
+        input.points = [
+            {x: 5, y:5},
+            {x: 10, y:0},
+            {x: 7, y:7},
+            {x: 0, y:10},
+            {x: 12, y:12},
+            {x: 3, y:7},
+            {x: 10, y:10},
+        ];
+
+        const output = collinear(input);
+        expect(output.length).toEqual(2);
+        expect(outputContainsLine(output, {x: 10, y: 0}, {x:0, y:10}))
+            .toEqual(true);
+        expect(outputContainsLine(output, {x: 12, y: 12}, {x:5, y:5}))
             .toEqual(true);
     });
 });
