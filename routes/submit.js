@@ -1,16 +1,21 @@
 const fs = require('mz/fs');
 const puppeteer = require('puppeteer');
 const options = { args: ['--enable-precise-memory-info'] };
+const Jasmine = require('jasmine');
 
 module.exports = async function(req, res) {
     try {
         const fileString = req.body.collinear;
         const file = Buffer.from(fileString, 'base64').toString('utf8');
-        console.log('File', file);
 
         await fs.writeFile('web/collinear.js', file);
-        const report = await perf();
-        res.send('Submitted successfully ' + JSON.stringify(report));
+
+        let report = '';
+        const specReport = await runSpec();
+        res.send('Submitted successfully ' + JSON.stringify(specReport));
+
+        // const report = await perf();
+        // res.send('Submitted successfully ' + JSON.stringify(report));
     } catch (err) {
         if (err.message) {
             res.send('Error: ' + err.message);
@@ -61,4 +66,38 @@ async function perf() {
     await browser.close();
 
     return report;
+}
+
+function JasmineReporter() {
+    this.report = '';
+
+    this.specDone = function(spec) {
+        this.report += spec.fullName + ' : ' + spec.status;
+    };
+
+    this.jasmineDone = function(result) {
+        this.overallStatus = result.overallStatus;
+        if (this.onDone) {
+            this.onDone();
+        }
+    };
+};
+
+async function runSpec() {
+    return new Promise(function(resolve, reject) {
+        console.log('Running spec using jasmine');
+        const jasmine = new Jasmine();
+        const reporter = new JasmineReporter();
+
+        reporter.onDone = function() {
+            resolve({
+                report: reporter.report,
+                status: reporter.overallStatus,
+            });
+        };
+
+        jasmine.completionReporter.onComplete(function() {});
+        jasmine.addReporter(reporter);
+        jasmine.execute(['web/collinear.test.js']);
+    });
 }
