@@ -2,7 +2,6 @@
 const collinear = require('./collinear');
 
 function isEqual(pointA, pointB) {
-    // console.log('isEqual', pointA.x === pointB.x && pointA.y === pointB.y);
     return pointA.x === pointB.x && pointA.y === pointB.y;
 }
 
@@ -21,23 +20,57 @@ function outputContainsLine(output, pointA, pointB) {
 }
 
 describe('Collinear', () => {
-    it('should find collinear points', () => {
+    it('should find either ends of a collinear points line segment', () => {
         const input ={};
         input.points = [
-            {x: 10000, y:0},
-            {x: 0, y:10000},
-            {x: 3000, y:7000},
-            {x: 7000, y:3000},
-            {x: 20000, y:21000},
-            {x: 3000, y:4000},
-            {x: 14000, y:15000},
-            {x: 6000, y:7000},
+            {x: 10, y:0},
+            {x: 0, y:10},
+            {x: 3, y:7},
+            {x: 7, y:3},
+            {x: 20, y:21},
+            {x: 3, y:4},
+            {x: 14, y:15},
+            {x: 6, y:7},
         ];
 
         const output = collinear(input);
-        expect(outputContainsLine(output, {x: 10000, y: 0}, {x:0, y:10000}))
+        expect(output.length).toEqual(2);
+        expect(outputContainsLine(output, {x: 10, y: 0}, {x:0, y:10}))
             .toEqual(true);
-        expect(outputContainsLine(output, {x: 3000, y: 4000}, {x:20000, y:21000}))
+        expect(outputContainsLine(output, {x: 3, y: 4}, {x:20, y:21}))
+            .toEqual(true);
+    });
+
+    it('should not a find a line unless there are four collinear points in it', () => {
+        const input ={};
+        input.points = [
+            {x: 3, y:7},
+            {x: 3, y:4},
+            {x: 14, y:15},
+            {x: 6, y:7},
+            {x: 3, y:5},
+        ];
+
+        const output = collinear(input);
+        console.log('output', output);
+        expect(output.length).toEqual(0);
+    });
+
+    it('should find vertical line', () => {
+        const input ={};
+        input.points = [
+            {x: 3, y:7},
+            {x: 3, y:4},
+            {x: 14, y:15},
+            {x: 6, y:7},
+            {x: 3, y:10},
+            {x: 3, y:5},
+        ];
+
+        const output = collinear(input);
+        console.log('output', output);
+        expect(output.length).toEqual(1);
+        expect(outputContainsLine(output, {x: 3, y: 4}, {x:3, y:10}))
             .toEqual(true);
     });
 });

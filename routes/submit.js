@@ -72,7 +72,7 @@ function JasmineReporter() {
     this.report = '';
 
     this.specDone = function(spec) {
-        this.report += spec.fullName + ' : ' + spec.status;
+        this.report += spec.fullName + ' : ' + spec.status + '\n';
     };
 
     this.jasmineDone = function(result) {
@@ -85,7 +85,10 @@ function JasmineReporter() {
 
 async function runSpec() {
     return new Promise(function(resolve, reject) {
-        console.log('Running spec using jasmine');
+        // Clear npm cache to enable running again
+        delete require.cache[require.resolve('./../web/collinear.test.js')];
+        delete require.cache[require.resolve('./../web/collinear.js')];
+
         const jasmine = new Jasmine();
         const reporter = new JasmineReporter();
 
