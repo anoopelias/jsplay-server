@@ -11,6 +11,7 @@
     "express": "~4.13.1",
     "jasmine": "^3.0.0",
     "mz": "^2.7.0",
-    "puppeteer": "^1.0.0"
+    "puppeteer": "^1.0.0",
+    "rwlock": "^5.0.0"
   }
 }

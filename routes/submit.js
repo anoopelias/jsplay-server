@@ -1,10 +1,24 @@
 const fs = require('mz/fs');
 const Jasmine = require('jasmine');
+const ReadWriteLock = require('rwlock');
+
+const lock = new ReadWriteLock();
 
 module.exports = async function(req, res) {
+    const fileString = req.body.collinear;
+    const name = req.query.name || '<Unknown>';
+
+    // Run one at a time
+    lock.writeLock(async function(release) {
+        const response = await process(fileString, name);
+        release();
+        res.send(response);
+    });
+
+};
+
+async function process(fileString, name) {
     try {
-        const fileString = req.body.collinear;
-        const name = req.query.name || '<Unknown>';
         const file = Buffer.from(fileString, 'base64').toString('utf8');
 
         await fs.writeFile('web/collinear.js', file);
@@ -20,15 +34,16 @@ module.exports = async function(req, res) {
             report += 'Tests with 150 points\n';
             report += '     Time: ' + perfReport.time + ' milliseconds\n\n';
         }
-        res.send(report);
+
+        return report;
     } catch (err) {
         if (err.message) {
-            res.send('Error: ' + err.message);
+            return 'Error: ' + err.message;
         } else {
-            res.send('Unknown Error');
+            return 'Unknown Error';
         }
     }
-};
+}
 
 function cfl(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);

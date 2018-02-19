@@ -449,6 +449,10 @@ rimraf@^2.6.1:
   dependencies:
     glob "^7.0.5"
 
+rwlock@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/rwlock/-/rwlock-5.0.0.tgz#888d6a77a3351cc1a209204ef2ee1722093836cf"
+
 safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.1.tgz#893312af69b2123def71f57889001671eeb2c853"
