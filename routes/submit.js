@@ -1,6 +1,4 @@
 const fs = require('mz/fs');
-const puppeteer = require('puppeteer');
-const options = { args: ['--enable-precise-memory-info'] };
 const Jasmine = require('jasmine');
 
 module.exports = async function(req, res) {
@@ -10,12 +8,16 @@ module.exports = async function(req, res) {
 
         await fs.writeFile('web/collinear.js', file);
 
-        let report = '';
         const specReport = await runSpec();
-        res.send(strSpecReport(specReport));
+        let report = strSpecReport(specReport);
 
-        // const report = await perf();
-        // res.send('Submitted successfully ' + JSON.stringify(report));
+        if (specReport.status === 'passed') {
+            const perfReport = await runPerf();
+            report += 'Performance Tests: \n';
+            report += 'Tests with 150 points \n';
+            report += '     Time: ' + perfReport.time + ' milliseconds\n\n';
+        }
+        res.send(report);
     } catch (err) {
         if (err.message) {
             res.send('Error: ' + err.message);
@@ -35,53 +37,40 @@ function strSpecReport(specReport) {
     for (let spec of specReport.report) {
         str += cfl(spec.status) + ' : ' + spec.name + '\n';
     }
-
-    str += '\nOverall Status: ' + cfl(specReport.status) + '\n\n';
+    str += 'Functional Tests ' + cfl(specReport.status) + '\n\n';
 
     return str;
 }
 
-async function getReport(page) {
-    const report = {};
+async function readInput(filename) {
+    const input = await fs.readFile(filename, 'utf8');
+    const lines = input.split('\n');
+    const length = parseInt(lines.shift());
+    console.log('length', length);
+    let points = [];
 
-    return new Promise(function(resolve, reject) {
-        page.on('console', consoleMessage => {
-            const message = consoleMessage.text();
-            console.log(message);
-
-            if (consoleMessage.type() === 'info' &&
-                message.startsWith('::::TIME::::')) {
-                report.time = parseFloat(message.substring(12));
-            }
-            if (consoleMessage.type() === 'info' &&
-                message.startsWith('::::MEMORY::::')) {
-
-                report.mem = parseFloat(message.substring(14));
-            }
-
-            if (consoleMessage.type() === 'info' &&
-                message.startsWith('::::ERROR::::')) {
-                report.error = message.substring(13);
-            }
-
-            if (consoleMessage.type() === 'info' &&
-                message.startsWith('::::END::::')) {
-                resolve(report);
-            }
-
-        });
-    });
+    for (let i=0; i<length; i++) {
+        let line = lines[i];
+        let values = line.split(',').map(val => val.trim());
+        points.push({
+            x: parseFloat(values[0]),
+            y: parseFloat(values[1]),
+        })
+    }
+    return {
+        points: points,
+        length: length,
+    };
 }
 
-async function perf() {
-    const browser = await puppeteer.launch(options);
-    const page = await browser.newPage();
+async function runPerf() {
+    const input = await readInput('web/inputGenerated.txt');
+    const collinear = require('../web/collinear');
+    const startTime = +new Date();
+    const output = collinear(input);
+    const executionTime = new Date() - startTime;
 
-    await page.goto('http://localhost:8080');
-    const report = await getReport(page);
-    await browser.close();
-
-    return report;
+    return { time: executionTime };
 }
 
 function JasmineReporter() {
