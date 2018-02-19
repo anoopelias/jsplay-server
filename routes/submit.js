@@ -4,17 +4,20 @@ const Jasmine = require('jasmine');
 module.exports = async function(req, res) {
     try {
         const fileString = req.body.collinear;
+        const name = req.query.name || '<Unknown>';
         const file = Buffer.from(fileString, 'base64').toString('utf8');
 
         await fs.writeFile('web/collinear.js', file);
 
+        console.log('Submitting for', name);
+        let report = '\nSubmission report for ' + name + ' generated at ' + new Date() + '\n\n';
         const specReport = await runSpec();
-        let report = strSpecReport(specReport);
+        report += strSpecReport(specReport);
 
         if (specReport.status === 'passed') {
             const perfReport = await runPerf();
-            report += 'Performance Tests: \n';
-            report += 'Tests with 150 points \n';
+            report += 'Performance Tests:\n';
+            report += 'Tests with 150 points\n';
             report += '     Time: ' + perfReport.time + ' milliseconds\n\n';
         }
         res.send(report);
@@ -32,7 +35,7 @@ function cfl(string) {
 }
 
 function strSpecReport(specReport) {
-    let str = '\nFunctional Tests: \n';
+    let str = 'Functional Tests:\n';
 
     for (let spec of specReport.report) {
         str += cfl(spec.status) + ' : ' + spec.name + '\n';
