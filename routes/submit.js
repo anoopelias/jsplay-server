@@ -30,9 +30,7 @@ async function process(fileString, name) {
 
         if (specReport.status === 'passed') {
             const perfReport = await runPerf();
-            report += 'Performance Tests:\n';
-            report += 'Tests with 150 points\n';
-            report += '     Time: ' + perfReport.time + ' milliseconds\n\n';
+            report += strPerfReport(perfReport);
         }
 
         return report;
@@ -47,6 +45,21 @@ async function process(fileString, name) {
 
 function cfl(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function strPerfReport(perfReport) {
+    let report = 'Performance Tests:\n';
+    report += 'Tests with 150 points\n';
+    report += '     Time: ' + perfReport.time150 + ' milliseconds\n';
+    report += 'Tests with 300 points\n';
+
+    if (!isNaN(perfReport.time300)) {
+        report += '     Time: ' + perfReport.time300 + ' milliseconds\n';
+    } else {
+        report += '     Not Run';
+    }
+
+    return report + '\n';
 }
 
 function strSpecReport(specReport) {
@@ -81,14 +94,25 @@ async function readInput(filename) {
     };
 }
 
-async function runPerf() {
-    const input = await readInput('web/inputGenerated.txt');
+function time(input) {
     const collinear = require('../web/collinear');
     const startTime = +new Date();
     const output = collinear(input);
-    const executionTime = new Date() - startTime;
+    return new Date() - startTime;
+}
 
-    return { time: executionTime };
+async function runPerf() {
+    const input = await readInput('web/inputGenerated.txt');
+    const report = {};
+
+    report.time150 = time(input);
+
+    if (report.time150 < 100) {
+        const input300 = await readInput('web/inputGenerated300.txt');
+        report.time300 = time(input300);
+    }
+
+    return report;
 }
 
 function JasmineReporter() {
