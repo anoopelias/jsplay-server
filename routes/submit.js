@@ -120,7 +120,7 @@ async function runPerf() {
 
     report.time150 = time(input);
 
-    if (report.time150 < 100) {
+    if (report.time150 < 500) {
         const input300 = await readInput('web/inputGenerated300.txt');
         report.time300 = timeAccurate(input300);
     }
