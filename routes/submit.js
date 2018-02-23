@@ -1,6 +1,7 @@
 const fs = require('mz/fs');
 const Jasmine = require('jasmine');
 const ReadWriteLock = require('rwlock');
+const { performance } = require('perf_hooks');
 
 const lock = new ReadWriteLock();
 
@@ -101,6 +102,18 @@ function time(input) {
     return new Date() - startTime;
 }
 
+function timeAccurate(input) {
+    const collinear = require('../web/collinear');
+    performance.mark('A');
+    const output = collinear(input);
+    performance.mark('B');
+    performance.measure('A to B', 'A', 'B');
+
+    const measure = performance.getEntriesByName('A to B')[0];
+
+    return measure.duration;
+}
+
 async function runPerf() {
     const input = await readInput('web/inputGenerated.txt');
     const report = {};
@@ -109,7 +122,7 @@ async function runPerf() {
 
     if (report.time150 < 100) {
         const input300 = await readInput('web/inputGenerated300.txt');
-        report.time300 = time(input300);
+        report.time300 = timeAccurate(input300);
     }
 
     return report;
