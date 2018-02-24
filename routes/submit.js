@@ -104,12 +104,15 @@ function time(input) {
 
 function timeAccurate(input) {
     const collinear = require('../web/collinear');
+    performance.clearMarks();
     performance.mark('A');
     const output = collinear(input);
     performance.mark('B');
     performance.measure('A to B', 'A', 'B');
 
-    const measure = performance.getEntriesByName('A to B')[0];
+    const measures = performance.getEntriesByName('A to B');
+    console.log('len', measures.length);
+    const measure = measures[measures.length - 1];
 
     return measure.duration;
 }
