@@ -123,6 +123,8 @@ function timeAccurateLoop(input) {
         times.push(timeAccurate(input));
     }
 
+    console.log('times', times)
+
     return Math.min.apply(null, times);
 }
 
