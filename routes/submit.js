@@ -117,6 +117,15 @@ function timeAccurate(input) {
     return measure.duration;
 }
 
+function timeAccurateLoop(input) {
+    const times = [];
+    for (let i=0; i<10; i++) {
+        times.push(timeAccurate(input));
+    }
+
+    return Math.min.apply(null, times);
+}
+
 async function runPerf() {
     const input = await readInput('web/inputGenerated.txt');
     const report = {};
@@ -125,7 +134,7 @@ async function runPerf() {
 
     if (report.time150 < 500) {
         const input300 = await readInput('web/inputGenerated300.txt');
-        report.time300 = timeAccurate(input300);
+        report.time300 = timeAccurateLoop(input300);
     }
 
     return report;
