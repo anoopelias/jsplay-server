@@ -95,48 +95,50 @@ async function readInput(filename) {
     };
 }
 
-function time(input) {
+function time(command) {
     const collinear = require('../web/collinear');
     const startTime = +new Date();
-    const output = collinear(input);
+    const output = command();
     return new Date() - startTime;
 }
 
-function timeAccurate(input) {
-    const collinear = require('../web/collinear');
+function timeAccurate(command) {
+    performance.clearEntries('measure');
     performance.clearMarks();
+
     performance.mark('A');
-    const output = collinear(input);
+    const output = command();
     performance.mark('B');
     performance.measure('A to B', 'A', 'B');
 
-    const measures = performance.getEntriesByName('A to B');
-    console.log('len', measures.length);
-    const measure = measures[measures.length - 1];
+    const measure = performance.getEntriesByName('A to B')[0];
 
     return measure.duration;
 }
 
-function timeAccurateLoop(input) {
+function timeAccurateBest(command) {
     const times = [];
+
+    // Find best of 10
     for (let i=0; i<10; i++) {
-        times.push(timeAccurate(input));
+        times.push(timeAccurate(command));
     }
 
-    console.log('times', times)
+    console.log('times', times);
 
     return Math.min.apply(null, times);
 }
 
 async function runPerf() {
     const input = await readInput('web/inputGenerated.txt');
+    const collinear = require('../web/collinear');
     const report = {};
 
-    report.time150 = time(input);
+    report.time150 = time(collinear.bind(null, input));
 
     if (report.time150 < 500) {
         const input300 = await readInput('web/inputGenerated300.txt');
-        report.time300 = timeAccurateLoop(input300);
+        report.time300 = timeAccurateBest(collinear.bind(null, input300));
     }
 
     return report;
