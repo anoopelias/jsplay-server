@@ -127,4 +127,25 @@ describe('Collinear', () => {
         expect(outputContainsLine(output, {x:12, y:12}, {x:5, y:5}))
             .toEqual(true);
     });
+
+    it('should find either ends of two parallel lines', () => {
+        const input = {};
+        input.points = [
+            {x:0, y:4},
+            {x:1, y:5},
+            {x:2, y:6},
+            {x:3, y:7},
+            {x:2, y:0},
+            {x:3, y:1},
+            {x:4, y:2},
+            {x:5, y:3},
+        ];
+
+        const output = collinear(input);
+        expect(output.length).toEqual(2);
+        expect(outputContainsLine(output, {x:3, y:7}, {x:0, y:4}))
+            .toEqual(true);
+        expect(outputContainsLine(output, {x:5, y:3}, {x:2, y:0}))
+            .toEqual(true);
+    });
 });
