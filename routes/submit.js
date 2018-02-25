@@ -54,10 +54,12 @@ function strPerfReport(perfReport) {
     report += '     Time: ' + perfReport.time150 + ' milliseconds\n';
     report += 'Tests with 300 points\n';
 
-    if (!isNaN(perfReport.time300)) {
-        report += '     Time: ' + perfReport.time300 + ' milliseconds\n';
-    } else {
+    if (!perfReport.time300) {
         report += '     Not Run';
+    } else if (!perfReport.time300.success) {
+        report += '     Failed';
+    } else {
+        report += '     Time: ' + perfReport.time300.time + ' milliseconds\n';
     }
 
     return report + '\n';
@@ -102,7 +104,8 @@ function time(command) {
     return new Date() - startTime;
 }
 
-function timeAccurate(command) {
+function timeAccurate(command, expected) {
+    let success = false;
     performance.clearEntries('measure');
     performance.clearMarks();
 
@@ -113,20 +116,38 @@ function timeAccurate(command) {
 
     const measure = performance.getEntriesByName('A to B')[0];
 
-    return measure.duration;
+    if (output && output.length === expected) {
+        success = true;
+    }
+
+    return {
+        time: measure.duration,
+        success: success,
+    }
 }
 
-function timeAccurateBest(command) {
+function timeAccurateBest(command, expected) {
     const times = [];
+    let success = true;
 
     // Find best of 10
     for (let i=0; i<10; i++) {
-        times.push(timeAccurate(command));
+        let result = timeAccurate(command, expected);
+
+        if (!result.success) {
+            success = false;
+            break;
+        }
+
+        times.push(result.time);
     }
 
     console.log('times', times);
 
-    return Math.min.apply(null, times);
+    return {
+        time: Math.min.apply(null, times),
+        success: success,
+    };
 }
 
 async function runPerf() {
@@ -138,7 +159,7 @@ async function runPerf() {
 
     if (report.time150 < 500) {
         const input300 = await readInput('web/inputGenerated300.txt');
-        report.time300 = timeAccurateBest(collinear.bind(null, input300));
+        report.time300 = timeAccurateBest(collinear.bind(null, input300), 30);
     }
 
     return report;
