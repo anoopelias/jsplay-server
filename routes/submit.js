@@ -57,6 +57,10 @@ function strAccurateReport(report) {
         return "Failed";
     }
 
+    if (report.timeout) {
+        return "Timeout (>1 sec)";
+    }
+
     return report.time + ' milliseconds';
  }
 
@@ -106,16 +110,9 @@ async function readInput(filename) {
 function time(command) {
     const collinear = require('../web/collinear');
 
-    performance.clearEntries('measure');
-    performance.clearMarks();
-
-    performance.mark('A');
     const startTime = +new Date();
     const output = command();
     const simpleTime = new Date() - startTime;
-
-    performance.mark('B');
-    performance.measure('A to B', 'A', 'B');
 
     return simpleTime;
 }
@@ -145,6 +142,7 @@ function timeAccurate(command, expected) {
 function timeAccurateBest(command, expected) {
     const times = [];
     let success = true;
+    let timeout = false;
 
     // Find best of 10
     for (let i=0; i<10; i++) {
@@ -152,6 +150,11 @@ function timeAccurateBest(command, expected) {
 
         if (!result.success) {
             success = false;
+            break;
+        }
+
+        if (result.time > 1000) {
+            timeout = true;
             break;
         }
 
@@ -163,6 +166,7 @@ function timeAccurateBest(command, expected) {
     return {
         time: Math.min.apply(null, times),
         success: success,
+        timeout: timeout,
     };
 }
 
