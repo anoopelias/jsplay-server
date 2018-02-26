@@ -48,19 +48,25 @@ function cfl(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+function strAccurateReport(report) {
+    if (!report) {
+        return "Not run";
+    }
+
+    if (!report.success) {
+        return "Failed";
+    }
+
+    return report.time + ' milliseconds';
+ }
+
 function strPerfReport(perfReport) {
     let report = 'Performance Tests:\n';
     report += 'Tests with 150 points\n';
     report += '     Time: ' + perfReport.time150 + ' milliseconds\n';
+    report += '     Accurate Time: ' + strAccurateReport(perfReport.time150Accurate) + '\n';
     report += 'Tests with 300 points\n';
-
-    if (!perfReport.time300) {
-        report += '     Not Run';
-    } else if (!perfReport.time300.success) {
-        report += '     Failed';
-    } else {
-        report += '     Time: ' + perfReport.time300.time + ' milliseconds\n';
-    }
+    report += '     Accurate Time: ' + strAccurateReport(perfReport.time300);
 
     return report + '\n';
 }
@@ -99,9 +105,19 @@ async function readInput(filename) {
 
 function time(command) {
     const collinear = require('../web/collinear');
+
+    performance.clearEntries('measure');
+    performance.clearMarks();
+
+    performance.mark('A');
     const startTime = +new Date();
     const output = command();
-    return new Date() - startTime;
+    const simpleTime = new Date() - startTime;
+
+    performance.mark('B');
+    performance.measure('A to B', 'A', 'B');
+
+    return simpleTime;
 }
 
 function timeAccurate(command, expected) {
@@ -156,6 +172,7 @@ async function runPerf() {
     const report = {};
 
     report.time150 = time(collinear.bind(null, input));
+    report.time150Accurate = timeAccurateBest(collinear.bind(null, input), 0);
 
     if (report.time150 < 500) {
         const input300 = await readInput('web/inputGenerated300.txt');
