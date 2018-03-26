@@ -7,9 +7,24 @@ const {
 
 const lock = new ReadWriteLock();
 
+const config = {
+  questions: [{
+    name: 'collinear',
+    description: 'Collinear points',
+  }, {
+    name: '8puzzle',
+    description: '8 Puzzle',
+  }]
+
+};
+
 module.exports = async function(req, res) {
-  const fileString = req.body.collinear;
   const name = req.query.name || '<Unknown>';
+  const fileString = {};
+  for (let i=0; i<config.questions.length; i++) {
+    let question = config.questions[i];
+    fileString[question.name] = req.body[question.name];
+  }
 
   // Run one at a time
   lock.writeLock(async function(release) {
@@ -20,20 +35,29 @@ module.exports = async function(req, res) {
 
 };
 
-async function process(fileString, name) {
+async function process(files, name) {
   try {
-    const file = Buffer.from(fileString, 'base64').toString('utf8');
-
-    await fs.writeFile('web/collinear.js', file);
-
     console.log('Submitting for', name);
     let report = '\nSubmission report for ' + name + ' generated at ' + new Date() + '\n\n';
-    const specReport = await runSpec();
-    report += strSpecReport(specReport);
 
-    if (specReport.status === 'passed') {
-      const perfReport = await runPerf();
-      report += strPerfReport(perfReport);
+    for (let i=0; i<config.questions.length; i++) {
+      let question = config.questions[i];
+      let fileString = files[question.name];
+
+      if (fileString) {
+        report += question.description + ':\n\n';
+
+        const file = Buffer.from(fileString, 'base64').toString('utf8');
+        await fs.writeFile('web/' + question.name, file);
+
+        const specReport = await runSpec(question);
+        report += specReport.strReport;
+
+        if (specReport.status === 'passed') {
+          const perfReport = await runPerf(question);
+          report += perfReport.strReport;
+        }
+      }
     }
 
     return report;
@@ -64,28 +88,6 @@ function strAccurateReport(report) {
   }
 
   return report.time + ' milliseconds';
-}
-
-function strPerfReport(perfReport) {
-  let report = 'Performance Tests:\n';
-  report += 'Tests with 150 points\n';
-  report += '     Time: ' + perfReport.time150 + ' milliseconds\n';
-  report += '     Accurate Time: ' + strAccurateReport(perfReport.time150Accurate) + '\n';
-  report += 'Tests with 300 points\n';
-  report += '     Accurate Time: ' + strAccurateReport(perfReport.time300);
-
-  return report + '\n';
-}
-
-function strSpecReport(specReport) {
-  let str = 'Functional Tests:\n';
-
-  for (let spec of specReport.report) {
-    str += cfl(spec.status) + ' : ' + spec.name + '\n';
-  }
-  str += 'Functional Tests ' + cfl(specReport.status) + '\n\n';
-
-  return str;
 }
 
 async function readInput(filename) {
@@ -172,7 +174,31 @@ function timeAccurateBest(command, expected) {
   };
 }
 
-async function runPerf() {
+async function runPerf(question) {
+  switch(question.name) {
+    case 'collinear' :
+      return await runPerfCollinear();
+    case '8puzzle' :
+      return await runPerf8Puzzle();
+  }
+}
+
+async function runPerf8Puzzle() {
+  const report = {};
+}
+
+function strPerfReportCollinear(perfReport) {
+  let report = 'Performance Tests:\n';
+  report += 'Tests with 150 points\n';
+  report += '     Time: ' + perfReport.time150 + ' milliseconds\n';
+  report += '     Accurate Time: ' + strAccurateReport(perfReport.time150Accurate) + '\n';
+  report += 'Tests with 300 points\n';
+  report += '     Accurate Time: ' + strAccurateReport(perfReport.time300);
+
+  return report + '\n';
+}
+
+async function runPerfCollinear() {
   const input = await readInput('web/inputGenerated.txt');
   const collinear = require('../web/collinear');
   const report = {};
@@ -184,6 +210,8 @@ async function runPerf() {
     const input300 = await readInput('web/inputGenerated300.txt');
     report.time300 = timeAccurateBest(collinear.bind(null, input300), 30);
   }
+
+  report.strReport = strPerfReportCollinear(report);
 
   return report;
 }
@@ -206,25 +234,39 @@ function JasmineReporter() {
   };
 };
 
-async function runSpec() {
+function strSpecReport(specReport) {
+  let str = 'Functional Tests:\n';
+
+  for (let spec of specReport.report) {
+    str += cfl(spec.status) + ' : ' + spec.name + '\n';
+  }
+  str += 'Functional Tests ' + cfl(specReport.status) + '\n\n';
+
+  return str;
+}
+
+async function runSpec(question) {
   return new Promise(function(resolve, reject) {
     // Clear npm cache to enable running again
-    delete require.cache[require.resolve('./../web/collinear.test.js')];
-    delete require.cache[require.resolve('./../web/collinear.js')];
+    delete require.cache[require.resolve('./../web/' + question.name + '.test.js')];
+    delete require.cache[require.resolve('./../web/' + question.name + '.js')];
 
     const jasmine = new Jasmine();
     const reporter = new JasmineReporter();
     jasmine.randomizeTests(false);
 
     reporter.onDone = function() {
-      resolve({
+      let report = {
         report: reporter.report,
         status: reporter.overallStatus,
-      });
+      };
+
+      report.strReport = strSpecReport(report);
+      resolve(report);
     };
 
     jasmine.completionReporter.onComplete(function() {});
     jasmine.addReporter(reporter);
-    jasmine.execute(['web/collinear.test.js']);
+    jasmine.execute(['web/' + question.name + '.test.js']);
   });
 }
