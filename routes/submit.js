@@ -90,7 +90,7 @@ function strAccurateReport(report) {
   return report.time + ' milliseconds';
 }
 
-async function readInput(filename) {
+async function readCollinearInput(filename) {
   const input = await fs.readFile(filename, 'utf8');
   const lines = input.split('\n');
   const length = parseInt(lines.shift());
@@ -107,6 +107,24 @@ async function readInput(filename) {
   }
   return {
     points: points,
+    length: length,
+  };
+}
+
+async function readInput(filename) {
+  const input = await fs.readFile(filename, 'utf8');
+  const lines = input.split('\n');
+  const length = parseInt(lines.shift());
+  let data = [];
+
+  for (let i = 0; i < length; i++) {
+    let line = lines[i];
+    data.push(line.split(' ')
+      .map(val => parseInt(val.trim()))
+      .filter(val => !isNaN(val)));
+  }
+  return {
+    data: data,
     length: length,
   };
 }
@@ -133,6 +151,7 @@ function timeAccurate(command, expected) {
 
   const measure = performance.getEntriesByName('A to B')[0];
 
+  console.log('output len', output.length);
   if (output && output.length === expected) {
     success = true;
   }
@@ -185,8 +204,16 @@ async function runPerf(question) {
 
 async function runPerf8Puzzle() {
   const report = {};
+  const input = await readInput('web/input8Puzzle20.txt');
+  const puzzle8 = require('../web/puzzle8');
 
-  report.strReport = 'No performance report generated\n';
+  input.board = input.data;
+  report.time20 = timeAccurateBest(puzzle8.bind(null, input), 10);
+
+  let strReport = 'Performance Tests:\n';
+  strReport += 'Tests with 20 size board\n';
+  strReport += '     Time: ' + strAccurateReport(report.time20) + '\n';
+  report.strReport = strReport;
   return report;
 }
 
@@ -202,7 +229,7 @@ function strPerfReportCollinear(perfReport) {
 }
 
 async function runPerfCollinear() {
-  const input = await readInput('web/inputGenerated.txt');
+  const input = await readCollinearInput('web/inputGenerated.txt');
   const collinear = require('../web/collinear');
   const report = {};
 
@@ -210,7 +237,7 @@ async function runPerfCollinear() {
   report.time150Accurate = timeAccurateBest(collinear.bind(null, input), 0);
 
   if (report.time150 < 500) {
-    const input300 = await readInput('web/inputGenerated300.txt');
+    const input300 = await readCollinearInput('web/inputGenerated300.txt');
     report.time300 = timeAccurateBest(collinear.bind(null, input300), 30);
   }
 
