@@ -12,7 +12,7 @@ const config = {
     name: 'collinear',
     description: 'Collinear points',
   }, {
-    name: '8puzzle',
+    name: 'puzzle8',
     description: '8 Puzzle',
   }]
 
@@ -48,7 +48,7 @@ async function process(files, name) {
         report += question.description + ':\n\n';
 
         const file = Buffer.from(fileString, 'base64').toString('utf8');
-        await fs.writeFile('web/' + question.name, file);
+        await fs.writeFile('web/' + question.name + '.js', file);
 
         const specReport = await runSpec(question);
         report += specReport.strReport;
@@ -178,13 +178,16 @@ async function runPerf(question) {
   switch(question.name) {
     case 'collinear' :
       return await runPerfCollinear();
-    case '8puzzle' :
+    case 'puzzle8' :
       return await runPerf8Puzzle();
   }
 }
 
 async function runPerf8Puzzle() {
   const report = {};
+
+  report.strReport = 'No performance report generated\n';
+  return report;
 }
 
 function strPerfReportCollinear(perfReport) {
