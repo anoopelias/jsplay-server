@@ -204,14 +204,14 @@ async function runPerf(question) {
 
 async function runPerf8Puzzle() {
   const report = {};
-  const input = await readInput('web/input8Puzzle20.txt');
+  const input = await readInput('web/input8Puzzle4_20.txt');
   const puzzle8 = require('../web/puzzle8');
 
   input.board = input.data;
   report.time20 = timeAccurateBest(puzzle8.bind(null, input), 10);
 
   let strReport = 'Performance Tests:\n';
-  strReport += 'Tests with 20 size board\n';
+  strReport += 'Tests with size 4 board with 20 shuffles\n';
   strReport += '     Time: ' + strAccurateReport(report.time20) + '\n';
   report.strReport = strReport;
   return report;
