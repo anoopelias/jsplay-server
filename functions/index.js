@@ -4,6 +4,7 @@ const fs = require('mz/fs');
 const Jasmine = require('jasmine');
 const ReadWriteLock = require('rwlock');
 const tempy = require('tempy');
+const Perf = require('performance-node');
 
 const lock = new ReadWriteLock();
 const config = {
@@ -66,22 +67,21 @@ function process(files, name) {
         report += question.description + ':\n\n';
 
         const file = Buffer.from(fileString, 'base64').toString('utf8');
-        console.log('Writing file', tempFile);
         return fs.writeFile(tempFile, file);
       }).then(() => {
-        console.log('Copying spec', specFileName);
+
         return copyFile(specFileName, tempSpecFile);
       }).then(() => {
-        console.log('Copying lib', specFileName);
+
         return copyFile(libFileName, tempLibFile);
       }).then(() => {
-        return runSpec(question, tempSpecFile);
 
+        return runSpec(question, tempSpecFile);
       }).then((specReport) => {
 
         report += specReport.strReport;
         if (specReport.status === 'passed') {
-          // return runPerf(question);
+          return runPerf(tempFile);
         }
         return;
       }).then((perfReport) => {
@@ -102,6 +102,109 @@ function process(files, name) {
       return 'Unknown Error';
     }
   });
+}
+
+function readInput(filename) {
+  return fs.readFile(filename, 'utf8').then(input => {
+    const lines = input.split('\n');
+    const length = parseInt(lines.shift());
+    let data = [];
+
+    for (let i = 0; i < length; i++) {
+      let line = lines[i];
+      data.push(line.split(' ')
+        .map(val => parseInt(val.trim()))
+        .filter(val => !isNaN(val)));
+    }
+    return {
+      data: data,
+      length: length,
+    };
+  });
+}
+
+function runPerf(file) {
+  const report = {};
+  return readInput('input8Puzzle4_20.txt').then(input => {
+    const puzzle8 = require(file);
+
+    input.board = input.data;
+    report.time20 = timeAccurateBest(puzzle8.bind(null, input), 10);
+
+    let strReport = 'Performance Tests:\n';
+    strReport += 'Tests with size 4 board with 20 shuffles\n';
+    strReport += '     Time: ' + strAccurateReport(report.time20) + '\n';
+    report.strReport = strReport;
+    return report;
+  });
+}
+
+function strAccurateReport(report) {
+  if (!report) {
+    return "Not run";
+  }
+
+  if (!report.success) {
+    return "Failed";
+  }
+
+  if (report.timeout) {
+    return "Timeout (>1 sec)";
+  }
+
+  return report.time + ' milliseconds';
+}
+
+function timeAccurateBest(command, expected) {
+  const times = [];
+  let success = true;
+  let timeout = false;
+
+  // Find best of 10
+  for (let i = 0; i < 10; i++) {
+    let result = timeAccurate(command, expected);
+
+    if (!result.success) {
+      success = false;
+      break;
+    }
+
+    if (result.time > 1000) {
+      timeout = true;
+      break;
+    }
+
+    times.push(result.time);
+  }
+
+  console.log('times', times);
+
+  return {
+    time: Math.min.apply(null, times),
+    success: success,
+    timeout: timeout,
+  };
+}
+
+function timeAccurate(command, expected) {
+  let success = false;
+  const timeline = new Perf();
+
+  timeline.mark('A');
+  const output = command();
+  timeline.mark('B');
+  timeline.measure('A to B', 'A', 'B');
+  const measure = timeline.getEntriesByName('A to B')[0];
+
+  console.log('output len', output.length);
+  if (output && output.length === expected) {
+    success = true;
+  }
+
+  return {
+    time: measure.duration,
+    success: success,
+  }
 }
 
 function copyFile(source, target) {
@@ -156,20 +259,17 @@ function runSpec(question, specFile) {
     jasmine.randomizeTests(false);
 
     reporter.onDone = function() {
-      console.log('Jasmine report done');
       let report = {
         report: reporter.report,
         status: reporter.overallStatus,
       };
 
       report.strReport = strSpecReport(report);
-      console.log('Resolving runSpec');
       resolve(report);
     };
 
     jasmine.completionReporter.onComplete(function() {});
     jasmine.addReporter(reporter);
-    console.log('Running spec', specFile);
     jasmine.execute([specFile]);
   });
 }
