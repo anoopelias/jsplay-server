@@ -3,6 +3,7 @@ const functions = require('firebase-functions');
 const fs = require('mz/fs');
 const Jasmine = require('jasmine');
 const ReadWriteLock = require('rwlock');
+const tempy = require('tempy');
 
 const lock = new ReadWriteLock();
 const config = {
@@ -54,15 +55,27 @@ function process(files, name) {
     let fileString = files[question.name];
 
     if (fileString) {
+      const temp = tempy.directory();
+      const specFileName = question.name + '.test.js';
+      const libFileName = question.name + '.lib.js';
+      const tempFile = temp + '/' + question.name + '.js';
+      const tempSpecFile = temp + '/' + specFileName;
+      const tempLibFile = temp + '/' + libFileName;
 
       chain = chain.then(() => {
         report += question.description + ':\n\n';
 
         const file = Buffer.from(fileString, 'base64').toString('utf8');
-        return fs.writeFile('web/' + question.name + '.js', file);
-
+        console.log('Writing file', tempFile);
+        return fs.writeFile(tempFile, file);
       }).then(() => {
-        return runSpec(question);
+        console.log('Copying spec', specFileName);
+        return copyFile(specFileName, tempSpecFile);
+      }).then(() => {
+        console.log('Copying lib', specFileName);
+        return copyFile(libFileName, tempLibFile);
+      }).then(() => {
+        return runSpec(question, tempSpecFile);
 
       }).then((specReport) => {
 
@@ -88,6 +101,21 @@ function process(files, name) {
     } else {
       return 'Unknown Error';
     }
+  });
+}
+
+function copyFile(source, target) {
+  var rd = fs.createReadStream(source);
+  var wr = fs.createWriteStream(target);
+  return new Promise(function(resolve, reject) {
+    rd.on('error', reject);
+    wr.on('error', reject);
+    wr.on('finish', resolve);
+    rd.pipe(wr);
+  }).catch(function(error) {
+    rd.destroy();
+    wr.end();
+    throw error;
   });
 }
 
@@ -120,11 +148,8 @@ function strSpecReport(specReport) {
   return str;
 }
 
-function runSpec(question) {
+function runSpec(question, specFile) {
   return new Promise(function(resolve, reject) {
-    // Clear npm cache to enable running again
-    delete require.cache[require.resolve('./web/' + question.name + '.test.js')];
-    delete require.cache[require.resolve('./web/' + question.name + '.js')];
 
     const jasmine = new Jasmine();
     const reporter = new JasmineReporter();
@@ -144,7 +169,8 @@ function runSpec(question) {
 
     jasmine.completionReporter.onComplete(function() {});
     jasmine.addReporter(reporter);
-    jasmine.execute(['./web/' + question.name + '.test.js']);
+    console.log('Running spec', specFile);
+    jasmine.execute([specFile]);
   });
 }
 
