@@ -101,7 +101,7 @@ describe('8 Puzzle', () => {
     expect(output).toEqual(null);
   });
 
-  it('Solve a single element board', () => {
+  it('should solve a single element board', () => {
     const input = {};
     input.board = [
       [0]
