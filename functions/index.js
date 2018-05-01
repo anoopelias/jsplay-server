@@ -116,7 +116,7 @@ function process(files, name) {
         if (specReport.status === 'passed') {
           return runPerf(filenames.source);
         }
-        return;
+        return 0;
       }).then((perfReport) => {
         if (perfReport) {
           report += perfReport.strReport;
@@ -247,12 +247,12 @@ function copyFile(source, target) {
 
   let rd = fs.createReadStream(source);
   let wr = fs.createWriteStream(target);
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     rd.on('error', reject);
     wr.on('error', reject);
     wr.on('finish', resolve);
     rd.pipe(wr);
-  }).catch(function(error) {
+  }).catch((error) => {
     rd.destroy();
     wr.end();
     throw error;
@@ -289,7 +289,7 @@ function strSpecReport(specReport) {
 }
 
 function runSpec(question, specFile) {
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
 
     const jasmine = new Jasmine();
     const reporter = new JasmineReporter();
@@ -305,7 +305,7 @@ function runSpec(question, specFile) {
       resolve(report);
     };
 
-    jasmine.completionReporter.onComplete(function() {});
+    jasmine.completionReporter.onComplete(() => {});
     jasmine.addReporter(reporter);
     jasmine.execute([specFile]);
   });
