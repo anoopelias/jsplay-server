@@ -15,6 +15,7 @@
     "jasmine": "^3.0.0",
     "mz": "^2.7.0",
     "performance-node": "^0.2.0",
+    "rimraf": "^2.6.2",
     "rwlock": "^5.0.0",
     "tempy": "^0.2.1"
   },

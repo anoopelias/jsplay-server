@@ -1,19 +1,19 @@
 const functions = require('firebase-functions');
 
 const fs = require('mz/fs');
+const path = require('path');
 const Jasmine = require('jasmine');
 const ReadWriteLock = require('rwlock');
 const tempy = require('tempy');
+const rimraf = require('rimraf');
 const Perf = require('performance-node');
 
 const lock = new ReadWriteLock();
 const config = {
   questions: [{
-    name: 'collinear',
-    description: 'Collinear points',
-  }, {
     name: 'puzzle8',
     description: '8 Puzzle',
+    files: ['puzzle8.lib.js'],
   }]
 
 };
@@ -45,43 +45,73 @@ exports.submit = functions.https.onRequest((req, res) => {
 
 });
 
+function createWorkspace(fileString, question) {
+  const temp = tempy.directory();
+
+  const file = Buffer.from(fileString, 'base64').toString('utf8');
+  const sourceFile = path.join(temp, question.name + '.js');
+  const specFileName = question.name + '.test.js';
+  const specFile = path.join(temp, specFileName);
+  const specFileSource = path.join(question.name, specFileName);
+  const proms = [];
+  const files = [sourceFile, specFile];
+
+  proms.push(fs.writeFile(sourceFile, file));
+  proms.push(copyFile(specFileSource, specFile));
+
+  for (let file of question.files) {
+    let source = path.join(question.name, file);
+    let target = path.join(temp, file);
+    proms.push(copyFile(source, target));
+
+    files.push(target);
+  }
+
+  return Promise.all(proms).then(() => {
+    return {
+      temp: temp,
+      spec: specFile,
+      source: sourceFile,
+      files: files,
+    };
+  });
+}
+
+function cleanup(filenames) {
+  return new Promise((resolve, reject) => {
+    if (filenames) {
+      rimraf(filenames.temp, () => {
+        resolve();
+      });
+    } else {
+      resolve();
+    }
+  });
+}
+
 function process(files, name) {
   let report = '\nSubmission report for ' + name + ' generated at ' + new Date() + '\n\n';
   console.log('Processing for', name);
 
   let chain = Promise.resolve();
+  let filenames;
 
   for (let i=0; i<config.questions.length; i++) {
     let question = config.questions[i];
     let fileString = files[question.name];
 
     if (fileString) {
-      const temp = tempy.directory();
-      const specFileName = question.name + '.test.js';
-      const libFileName = question.name + '.lib.js';
-      const tempFile = temp + '/' + question.name + '.js';
-      const tempSpecFile = temp + '/' + specFileName;
-      const tempLibFile = temp + '/' + libFileName;
 
       chain = chain.then(() => {
         report += question.description + ':\n\n';
-
-        const file = Buffer.from(fileString, 'base64').toString('utf8');
-        return fs.writeFile(tempFile, file);
-      }).then(() => {
-
-        return copyFile(specFileName, tempSpecFile);
-      }).then(() => {
-
-        return copyFile(libFileName, tempLibFile);
-      }).then(() => {
-
-        return runSpec(question, tempSpecFile);
+        return createWorkspace(fileString, question);
+      }).then((files) => {
+        filenames = files;
+        return runSpec(question, filenames.spec);
       }).then((specReport) => {
-
         report += specReport.strReport;
         if (specReport.status === 'passed') {
-          return runPerf(tempFile);
+          return runPerf(filenames.source);
         }
         return;
       }).then((perfReport) => {
@@ -89,6 +119,8 @@ function process(files, name) {
           report += perfReport.strReport;
         }
         return;
+      }).then(() => {
+        return cleanup(filenames);
       });
     }
   }
@@ -96,6 +128,7 @@ function process(files, name) {
   return chain.then(() => {
     return report;
   }).catch((err) => {
+    console.log(err);
     if (err.message) {
       return 'Error: ' + err.message;
     } else {
@@ -208,8 +241,9 @@ function timeAccurate(command, expected) {
 }
 
 function copyFile(source, target) {
-  var rd = fs.createReadStream(source);
-  var wr = fs.createWriteStream(target);
+
+  let rd = fs.createReadStream(source);
+  let wr = fs.createWriteStream(target);
   return new Promise(function(resolve, reject) {
     rd.on('error', reject);
     wr.on('error', reject);
