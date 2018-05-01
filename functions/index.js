@@ -80,9 +80,13 @@ function createWorkspace(fileString, question) {
 function cleanup(filenames) {
   return new Promise((resolve, reject) => {
     if (filenames) {
-      rimraf(filenames.temp, () => {
-        resolve();
-      });
+      // Unload them from memory
+      for (let file of filenames.files) {
+        console.log('resolving file', file);
+        delete require.cache[require.resolve(file)];
+      }
+
+      rimraf(filenames.temp, resolve);
     } else {
       resolve();
     }
