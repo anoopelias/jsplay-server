@@ -1,4 +1,3 @@
-const functions = require('firebase-functions');
 
 const fs = require('mz/fs');
 const path = require('path');
@@ -7,6 +6,12 @@ const ReadWriteLock = require('rwlock');
 const tempy = require('tempy');
 const rimraf = require('rimraf');
 const Perf = require('performance-node');
+
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp(functions.config().firebase);
+
+const db = admin.firestore();
 
 const lock = new ReadWriteLock();
 const config = {
@@ -20,9 +25,16 @@ const config = {
 
 exports.ping = functions.https.onRequest((req, res) => {
   const name = req.query.name || '<Unknown>';
+  const time = new Date();
 
   console.log('Responding to ping from', name);
-  return res.send('Response to ping for ' + name + ' at ' + new Date());
+  db.collection('pings').add({
+    name: name,
+    time: time,
+  }).then((doc) => {
+    return res.send('Response to ping for ' + name + ' at ' +
+      time + ' ' + ' id:' + doc.id);
+  });
 });
 
 exports.submit = functions.https.onRequest((req, res) => {
@@ -30,25 +42,32 @@ exports.submit = functions.https.onRequest((req, res) => {
   const fileString = {};
   for (let i=0; i<config.questions.length; i++) {
     let question = config.questions[i];
-    fileString[question.name] = req.body[question.name];
+    fileString[question.name] = Buffer.from(req.body[question.name], 'base64')
+      .toString('utf8');
   }
 
-  // Run one at a time
-  lock.writeLock(release => {
-    process(fileString, name).then((response) => {
-      release();
-      return res.send(response);
-    }).catch(() => {
-      return release();
+  db.collection('submissions').add({
+    name: name,
+    time: new Date(),
+    fileString: fileString,
+  }).then(submissionDoc => {
+    // Run one at a time
+    lock.writeLock(release => {
+      process(fileString, name, submissionDoc.id).then((response) => {
+        release();
+        return res.send(response);
+      }).catch(() => {
+        return release();
+      });
     });
   });
+
 
 });
 
 function createWorkspace(fileString, question) {
   const temp = tempy.directory();
 
-  const file = Buffer.from(fileString, 'base64').toString('utf8');
   const sourceFile = path.join(temp, question.name + '.js');
   const specFileName = question.name + '.test.js';
   const specFile = path.join(temp, specFileName);
@@ -56,7 +75,7 @@ function createWorkspace(fileString, question) {
   const proms = [];
   const files = [sourceFile, specFile];
 
-  proms.push(fs.writeFile(sourceFile, file));
+  proms.push(fs.writeFile(sourceFile, fileString));
   proms.push(copyFile(specFileSource, specFile));
 
   for (let file of question.files) {
@@ -92,8 +111,9 @@ function cleanup(filenames) {
   });
 }
 
-function process(files, name) {
-  let report = '\nSubmission report for ' + name + ' generated at ' + new Date() + '\n\n';
+function process(files, name, id) {
+  let reportStr = '\nSubmission report for ' + name + ' generated at ' + new Date() + '\n\n';
+  let report = {};
   console.log('Processing for', name);
 
   let chain = Promise.resolve();
@@ -106,20 +126,25 @@ function process(files, name) {
     if (fileString) {
 
       chain = chain.then(() => {
-        report += question.description + ':\n\n';
+        report[question.name] = {};
+        reportStr += question.description + ':\n\n';
+
         return createWorkspace(fileString, question);
       }).then((files) => {
         filenames = files;
         return runSpec(question, filenames.spec);
       }).then((specReport) => {
-        report += specReport.strReport;
-        if (specReport.status === 'passed') {
+        reportStr += specReport.strReport;
+        report[question.name].spec = specReport.data;
+
+        if (specReport.data.status === 'passed') {
           return runPerf(filenames.source);
         }
         return 0;
       }).then((perfReport) => {
         if (perfReport) {
-          report += perfReport.strReport;
+          report[question.name].perf = perfReport.data;
+          reportStr += perfReport.strReport;
         }
         return;
       }).then(() => {
@@ -129,14 +154,26 @@ function process(files, name) {
   }
 
   return chain.then(() => {
-    return report;
-  }).catch((err) => {
+    console.log('Saving report', JSON.stringify(report, null, 2));
+    return db.collection('reports').add({
+      name: name,
+      id: id,
+      report: report
+    });
+  }).then(() => reportStr)
+  .catch((err) => {
+
     console.log(err);
+    let message = 'Unknown Error';
     if (err.message) {
-      return 'Error: ' + err.message;
-    } else {
-      return 'Unknown Error';
+      message = 'Error: ' + err.message;
     }
+
+    return db.collection('reports').add({
+      name: name,
+      submissionId: id,
+      errMessage: message,
+    }).then(() => message);
   });
 }
 
@@ -161,15 +198,17 @@ function readInput(filename) {
 
 function runPerf(file) {
   const report = {};
+  report.data = {};
   return readInput('input8Puzzle4_20.txt').then(input => {
     const puzzle8 = require(file);
 
     input.board = input.data;
-    report.time20 = timeAccurateBest(puzzle8.bind(null, input), 10);
+    report.data.time20_4 = timeAccurateBest(puzzle8.bind(null, input), 10);
+    report.data.time20_4.status = strAccurateReport(report.data.time20_4);
 
     let strReport = 'Performance Tests:\n';
     strReport += 'Tests with size 4 board with 20 shuffles\n';
-    strReport += '     Time: ' + strAccurateReport(report.time20) + '\n';
+    strReport += '     Time: ' + report.data.time20_4.status + '\n';
     report.strReport = strReport;
     return report;
   });
@@ -296,12 +335,13 @@ function runSpec(question, specFile) {
     jasmine.randomizeTests(false);
 
     reporter.onDone = function() {
-      let report = {
+      let report = {};
+      report.data = {
         report: reporter.report,
         status: reporter.overallStatus,
       };
 
-      report.strReport = strSpecReport(report);
+      report.strReport = strSpecReport(report.data);
       resolve(report);
     };
 
