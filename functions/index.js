@@ -32,7 +32,7 @@ exports.ping = functions.https.onRequest((req, res) => {
     name: name,
     time: time,
   }).then((doc) => {
-    return res.send('id: ' + + doc.id + ' Response to ping for ' + name + ' at ' + time);
+    return res.send('Response to ping for ' + name + ' at ' + time);
   });
 });
 
@@ -156,7 +156,7 @@ function process(files, name, id) {
     console.log('Saving report', JSON.stringify(report, null, 2));
     return db.collection('reports').add({
       name: name,
-      id: id,
+      submissionId: id,
       report: report
     });
   }).then(() => reportStr)
