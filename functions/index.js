@@ -28,12 +28,11 @@ exports.ping = functions.https.onRequest((req, res) => {
   const time = new Date();
 
   console.log('Responding to ping from', name);
-  db.collection('pings').add({
+  return db.collection('pings').add({
     name: name,
     time: time,
   }).then((doc) => {
-    return res.send('Response to ping for ' + name + ' at ' +
-      time + ' ' + ' id:' + doc.id);
+    return res.send('id: ' + + doc.id + ' Response to ping for ' + name + ' at ' + time);
   });
 });
 
@@ -46,13 +45,13 @@ exports.submit = functions.https.onRequest((req, res) => {
       .toString('utf8');
   }
 
-  db.collection('submissions').add({
+  return db.collection('submissions').add({
     name: name,
     time: new Date(),
     fileString: fileString,
   }).then(submissionDoc => {
     // Run one at a time
-    lock.writeLock(release => {
+    return lock.writeLock(release => {
       process(fileString, name, submissionDoc.id).then((response) => {
         release();
         return res.send(response);
