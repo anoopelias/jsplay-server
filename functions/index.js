@@ -23,6 +23,16 @@ const config = {
 
 };
 
+const perfConfig = [{
+  file: 'input8Puzzle3_20.txt',
+  maxTime: 300,
+  outputLen: 6,
+}, {
+  file: 'input8Puzzle4_20.txt',
+  maxTime: 300,
+  outputLen: 20,
+}];
+
 exports.ping = functions.https.onRequest((req, res) => {
   const name = req.query.name || '<Unknown>';
   const time = new Date();
@@ -198,22 +208,22 @@ function readInput(filename) {
 function runPerf(file) {
   const report = {};
   report.data = {};
-  return readInput('input8Puzzle4_20.txt').then(input => {
+  return readInput('puzzle8/input8Puzzle3_20.txt').then(input => {
     const puzzle8 = require(file);
 
     input.board = input.data;
-    report.data.time20_4 = timeAccurateBest(puzzle8.bind(null, input), 10);
-    report.data.time20_4.status = strAccurateReport(report.data.time20_4);
+    report.data.time20_4 = timeBest(puzzle8.bind(null, input), 6);
+    report.data.time20_4.status = strPerfReport(report.data.time20_4);
 
     let strReport = 'Performance Tests:\n';
-    strReport += 'Tests with size 4 board with 20 shuffles\n';
+    strReport += 'Tests with size 3 board with 20 shuffles\n';
     strReport += '     Time: ' + report.data.time20_4.status + '\n';
     report.strReport = strReport;
     return report;
   });
 }
 
-function strAccurateReport(report) {
+function strPerfReport(report) {
   if (!report) {
     return "Not run";
   }
@@ -229,14 +239,14 @@ function strAccurateReport(report) {
   return report.time + ' milliseconds';
 }
 
-function timeAccurateBest(command, expected) {
+function timeBest(command, expected) {
   const times = [];
   let success = true;
   let timeout = false;
 
-  // Find best of 10
-  for (let i = 0; i < 10; i++) {
-    let result = timeAccurate(command, expected);
+  // Find best of 5
+  for (let i = 0; i < 5; i++) {
+    let result = time(command, expected);
 
     if (!result.success) {
       success = false;
@@ -260,7 +270,7 @@ function timeAccurateBest(command, expected) {
   };
 }
 
-function timeAccurate(command, expected) {
+function time(command, expected) {
   let success = false;
   const timeline = new Perf();
 
