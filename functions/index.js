@@ -24,11 +24,15 @@ const config = {
 };
 
 const perfConfig = [{
+  number: 1,
   file: 'input8Puzzle3_20.txt',
-  maxTime: 300,
+  description: 'size 3 board',
+  maxTime: 3,
   outputLen: 6,
 }, {
+  number: 2,
   file: 'input8Puzzle4_20.txt',
+  description: 'size 4 board',
   maxTime: 300,
   outputLen: 20,
 }];
@@ -147,7 +151,7 @@ function process(files, name, id) {
         report[question.name].spec = specReport.data;
 
         if (specReport.data.status === 'passed') {
-          return runPerf(filenames.source);
+          return runPerf(question, filenames.source);
         }
         return 0;
       }).then((perfReport) => {
@@ -205,21 +209,33 @@ function readInput(filename) {
   });
 }
 
-function runPerf(file) {
+function runPerf(question, file) {
   const report = {};
-  report.data = {};
-  return readInput('puzzle8/input8Puzzle3_20.txt').then(input => {
-    const puzzle8 = require(file);
 
-    input.board = input.data;
-    report.data.time20_4 = timeBest(puzzle8.bind(null, input), 6);
-    report.data.time20_4.status = strPerfReport(report.data.time20_4);
+  const func = require(file);
+  report.strReport = 'Performance Tests:\n';
 
-    let strReport = 'Performance Tests:\n';
-    strReport += 'Tests with size 3 board with 20 shuffles\n';
-    strReport += '     Time: ' + report.data.time20_4.status + '\n';
-    report.strReport = strReport;
+  return runPerfLevel(question, perfConfig[0], func).then(levelReport => {
+    report.data = levelReport;
+    report.strReport += levelReport.strReport;
     return report;
+  });
+}
+
+function runPerfLevel(question, level, func) {
+  return readInput(question.name + '/' + level.file).then(input => {
+    input.board = input.data;
+    let levelReport = {};
+
+    levelReport.number = level.number;
+    levelReport.time = timeBest(func.bind(null, input), level.outputLen);
+    levelReport.time.status = strPerfReport(levelReport.time);
+
+    levelReport.strReport = 'Level ' + level.number +
+      ': Tests with ' + level.description + '\n' +
+      '     Time: ' + levelReport.time.status + '\n';
+
+    return levelReport;
   });
 }
 
