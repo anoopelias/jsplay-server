@@ -27,14 +27,14 @@ const perfConfig = [{
   number: 1,
   file: 'input8Puzzle3_20.txt',
   description: 'size 3 board',
-  maxTime: 3,
+  maxTime: 0.5,
   outputLen: 6,
 }, {
   number: 2,
   file: 'input8Puzzle4_20.txt',
   description: 'size 4 board',
   maxTime: 300,
-  outputLen: 20,
+  outputLen: 10,
 }];
 
 exports.ping = functions.https.onRequest((req, res) => {
@@ -214,12 +214,23 @@ function runPerf(question, file) {
 
   const func = require(file);
   report.strReport = 'Performance Tests:\n';
+  report.data = [];
 
-  return runPerfLevel(question, perfConfig[0], func).then(levelReport => {
-    report.data = levelReport;
-    report.strReport += levelReport.strReport;
-    return report;
-  });
+  let chain = Promise.resolve(true);
+
+  for (let i=0; i<perfConfig.length; i++) {
+    chain = chain.then(continued => {
+      if (continued) {
+        return runPerfLevel(question, perfConfig[i], func).then(levelReport => {
+          report.data.push(levelReport);
+          report.strReport += levelReport.strReport;
+          return levelReport.time.status;
+        });
+      }
+    });
+  }
+
+  return chain.then(() => report);
 }
 
 function runPerfLevel(question, level, func) {
@@ -229,17 +240,19 @@ function runPerfLevel(question, level, func) {
 
     levelReport.number = level.number;
     levelReport.time = timeBest(func.bind(null, input), level.outputLen);
-    levelReport.time.status = strPerfReport(levelReport.time);
+    levelReport.time.status = levelReport.time.success &&
+      !levelReport.time.timeout &&
+      levelReport.time.time < level.maxTime;
 
     levelReport.strReport = 'Level ' + level.number +
       ': Tests with ' + level.description + '\n' +
-      '     Time: ' + levelReport.time.status + '\n';
+      '     Time: ' + strTimeReport(levelReport.time) + '\n';
 
     return levelReport;
   });
 }
 
-function strPerfReport(report) {
+function strTimeReport(report) {
   if (!report) {
     return "Not run";
   }
