@@ -27,7 +27,7 @@ const perfConfig = [{
   number: 1,
   file: 'input8Puzzle3_20.txt',
   description: 'size 3 board',
-  maxTime: 0.5,
+  maxTime: 3,
   outputLen: 6,
 }, {
   number: 2,
@@ -227,6 +227,8 @@ function runPerf(question, file) {
           return levelReport.time.status;
         });
       }
+
+      return false;
     });
   }
 
