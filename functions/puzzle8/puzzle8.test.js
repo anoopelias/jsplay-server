@@ -137,7 +137,6 @@ describe('8 Puzzle', () => {
   it('should solve size 3 board tests', () => {
     for (let i = 0; i < boards3.length; i++) {
       const board3 = boards3[i];
-      console.log('Running', i, board3.board);
       const output = puzzle8({
         board: board3.board
       });
@@ -151,7 +150,6 @@ describe('8 Puzzle', () => {
   it('should solve size 4 board tests', () => {
     for (let i = 0; i < boards4.length; i++) {
       const board4 = boards4[i];
-      console.log('Running', i, board4.board);
       const output = puzzle8({
         board: board4.board
       });
