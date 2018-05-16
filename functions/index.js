@@ -224,7 +224,7 @@ function runPerf(question, file) {
         return runPerfLevel(question, perfConfig[i], func).then(levelReport => {
           report.data.push(levelReport);
           report.strReport += levelReport.strReport;
-          return levelReport.time.status;
+          return levelReport.status;
         });
       }
 
@@ -241,20 +241,18 @@ function runPerfLevel(question, level, func) {
     let levelReport = {};
 
     levelReport.number = level.number;
-    levelReport.time = timeBest(func.bind(null, input), level.outputLen);
-    levelReport.time.status = levelReport.time.success &&
-      !levelReport.time.timeout &&
-      levelReport.time.time < level.maxTime;
+    levelReport.time = timeBest(func.bind(null, input), level);
+    levelReport.status = levelReport.time.success && !levelReport.time.timeout;
 
     levelReport.strReport = 'Level ' + level.number +
       ': Tests with ' + level.description + '\n' +
-      '     Time: ' + strTimeReport(levelReport.time) + '\n';
+      '     Time: ' + strTimeReport(levelReport.time, level.maxTime) + '\n';
 
     return levelReport;
   });
 }
 
-function strTimeReport(report) {
+function strTimeReport(report, maxTime) {
   if (!report) {
     return "Not run";
   }
@@ -264,35 +262,34 @@ function strTimeReport(report) {
   }
 
   if (report.timeout) {
-    return "Timeout (>1 sec)";
+    return "Timeout (>" + maxTime + " ms)";
   }
 
   return report.time + ' milliseconds';
 }
 
-function timeBest(command, expected) {
+function timeBest(command, level) {
   const times = [];
   let success = true;
   let timeout = false;
 
   // Find best of 5
   for (let i = 0; i < 5; i++) {
-    let result = time(command, expected);
+    let result = time(command, level.outputLen);
+    times.push(result.time);
 
     if (!result.success) {
       success = false;
       break;
     }
 
-    if (result.time > 1000) {
+    console.log(result.time, level.maxTime);
+    if (result.time > level.maxTime) {
       timeout = true;
       break;
     }
 
-    times.push(result.time);
   }
-
-  console.log('times', times);
 
   return {
     time: Math.min.apply(null, times),
