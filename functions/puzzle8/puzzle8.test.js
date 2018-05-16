@@ -93,9 +93,8 @@ describe('8 Puzzle', () => {
   it('should return null for a board that cannot be solved', () => {
     const input = {};
     input.board = [
-      [0, 1, 3],
-      [4, 5, 2],
-      [7, 8, 6]
+      [1, 3],
+      [2, 0]
     ];
     const output = puzzle8(input);
     expect(output).toEqual(null);
