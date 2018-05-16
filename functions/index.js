@@ -167,7 +167,6 @@ function process(files, name, id) {
   }
 
   return chain.then(() => {
-    console.log('Saving report', JSON.stringify(report, null, 2));
     return db.collection('reports').add({
       name: name,
       submissionId: id,
@@ -283,7 +282,6 @@ function timeBest(command, level) {
       break;
     }
 
-    console.log(result.time, level.maxTime);
     if (result.time > level.maxTime) {
       timeout = true;
       break;
@@ -308,7 +306,6 @@ function time(command, expected) {
   timeline.measure('A to B', 'A', 'B');
   const measure = timeline.getEntriesByName('A to B')[0];
 
-  console.log('output len', output.length);
   if (output && output.length === expected) {
     success = true;
   }
