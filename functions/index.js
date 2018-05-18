@@ -334,15 +334,18 @@ function timeBest(command, level) {
       break;
     }
 
-    if (result.time > level.maxTime) {
+    if (result.time > (level.maxTime + 100)) {
       timeout = true;
       break;
     }
 
   }
 
+  let minTime = Math.min.apply(null, times);
+  timeout = timeout || minTime > level.maxTime;
+
   return {
-    time: Math.min.apply(null, times),
+    time: minTime,
     success: success,
     timeout: timeout,
   };
