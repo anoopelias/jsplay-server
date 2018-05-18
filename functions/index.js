@@ -27,7 +27,7 @@ const perfConfig = [{
   number: 1,
   file: 'input8Puzzle3_20.txt',
   description: 'size 3 board',
-  maxTime: 10,
+  maxTime: 3,
   outputLen: 6,
 }, {
   number: 2,
