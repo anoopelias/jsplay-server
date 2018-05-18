@@ -27,7 +27,7 @@ const perfConfig = [{
   number: 1,
   file: 'input8Puzzle3_20.txt',
   description: 'size 3 board',
-  maxTime: 3,
+  maxTime: 10,
   outputLen: 6,
 }, {
   number: 2,
@@ -76,6 +76,60 @@ exports.submit = functions.https.onRequest((req, res) => {
   });
 
 
+});
+
+exports.leaderboard = functions.https.onRequest((req, res) => {
+  return db.collection('reports')
+    .get().then((reports) => {
+      let leaders = [];
+      let topLeaders = [];
+      perfConfig.forEach(() => {
+        leaders.push([])
+        topLeaders.push([])
+      });
+
+      reports.forEach(reportDoc => {
+        let reportData = reportDoc.data();
+        let report = reportData.report;
+
+        if (report.puzzle8.spec.status === 'passed') {
+          report.puzzle8.perf.forEach((levelReport, index) => {
+            if (levelReport.status) {
+              levelReport.name = reportData.name;
+              leaders[index].push(levelReport);
+            }
+          });
+        }
+      });
+
+
+      leaders.forEach((level, levelIndex) => {
+        level.sort((levelReportA, levelReportB) => {
+          return levelReportA.time.time - levelReportB.time.time;
+        });
+
+        console.log('level ' + levelIndex + ':' + JSON.stringify(level, null, 2));
+        let topLeaderNames = [];
+        for (let i=0; i<level.length; i++) {
+          let levelReport = level[i];
+          if (topLeaderNames.indexOf(levelReport.name) === -1) {
+            topLeaderNames.push(levelReport.name);
+            topLeaders[levelIndex].push(levelReport.name + " Time:" +
+              round(levelReport.time.time, 3) + ' milliseconds');
+
+            if (topLeaderNames.length >= 5) {
+              break;
+            }
+          }
+        }
+      });
+
+      console.log('topLeaders' + JSON.stringify(topLeaders, null, 2));
+      let response = topLeaders.map((level, index) => {
+        return 'Level ' + (index + 1) + '\n' + level.join('\n');
+      }).join('\n\n');
+      return res.send('puzzle8\n\n' + response);
+    });
 });
 
 function createWorkspace(fileString, question) {
@@ -387,4 +441,9 @@ function runSpec(question, specFile) {
 
 function cfl(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function round(value, places) {
+  let num = Math.pow(10, places);
+  return Math.round(value * num) / num;
 }
