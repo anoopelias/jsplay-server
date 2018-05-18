@@ -108,7 +108,6 @@ exports.leaderboard = functions.https.onRequest((req, res) => {
           return levelReportA.time.time - levelReportB.time.time;
         });
 
-        console.log('level ' + levelIndex + ':' + JSON.stringify(level, null, 2));
         let topLeaderNames = [];
         for (let i=0; i<level.length; i++) {
           let levelReport = level[i];
@@ -124,11 +123,10 @@ exports.leaderboard = functions.https.onRequest((req, res) => {
         }
       });
 
-      console.log('topLeaders' + JSON.stringify(topLeaders, null, 2));
       let response = topLeaders.map((level, index) => {
         return 'Level ' + (index + 1) + '\n' + level.join('\n');
       }).join('\n\n');
-      return res.send('puzzle8\n\n' + response);
+      return res.send('Leaderboard at ' + new Date() + '\n\n8 Puzzle:\n\n' + response);
     });
 });
 
