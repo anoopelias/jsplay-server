@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "jsplay-server"
+    "default": "jsplay-server",
+    "staging": "jsplay-server-stage"
   }
 }
