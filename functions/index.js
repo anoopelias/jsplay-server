@@ -37,8 +37,8 @@ const perfConfig = [{
   outputLen: 10,
 }, {
   number: 3,
-  file: 'input8Puzzle4_80.txt',
-  description: 'size 4 board with 80 shuffles',
+  file: 'input8Puzzle4_60.txt',
+  description: 'size 4 board with 60 shuffles',
   maxTime: 2500,
   outputLen: 22,
 }];
