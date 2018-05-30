@@ -85,7 +85,7 @@ exports.submit = functions.https.onRequest((req, res) => {
 });
 
 exports.leaderboard = functions.https.onRequest((req, res) => {
-  return db.collection('reports')
+  return db.collection('reports').where("report.puzzle8.spec.status", "==", "passed")
     .get().then((reports) => {
       let leaders = [];
       let topLeaders = [];
