@@ -1,0 +1,46 @@
+[debug] [2018-05-31T13:55:16.197Z] ----------------------------------------------------------------------
+[debug] [2018-05-31T13:55:16.199Z] Command:       /home/anoop/.nvm/versions/node/v6.14.0/bin/node /home/anoop/.nvm/versions/node/v6.14.0/bin/firebase serve
+[debug] [2018-05-31T13:55:16.200Z] CLI Version:   3.18.4
+[debug] [2018-05-31T13:55:16.200Z] Platform:      linux
+[debug] [2018-05-31T13:55:16.200Z] Node Version:  v6.14.0
+[debug] [2018-05-31T13:55:16.200Z] Time:          Thu May 31 2018 19:25:16 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:16.200Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2018-05-31T13:55:16.207Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2018-05-31T13:55:16.207Z] > authorizing via signed-in user
+[debug] [2018-05-31T13:55:16.208Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2018-05-31T13:55:16.209Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ { refresh_token: '1/QjuuTl2bcGZtARkKrgnzcrqe3Bt0wIqfHe95ZvmjZ9A9e9zhcSONNXU9amAPEg4g',
+  client_id: '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com',
+  client_secret: 'j9iVZfS8kkCEFUPaAeJV0sAi',
+  grant_type: 'refresh_token',
+  scope: 'email https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/cloudplatformprojects.readonly https://www.googleapis.com/auth/firebase openid' } 
+ Thu May 31 2018 19:25:16 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:18.402Z] <<< HTTP RESPONSE 200
+[debug] [2018-05-31T13:55:18.407Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/projects/jsplay-server  
+  
+ Thu May 31 2018 19:25:18 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:20.037Z] <<< HTTP RESPONSE 200
+[debug] [2018-05-31T13:55:20.038Z] >>> HTTP REQUEST GET https://admin.firebase.com/v1/database/jsplay-server/tokens  
+  
+ Thu May 31 2018 19:25:20 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:21.263Z] <<< HTTP RESPONSE 200
+[debug] [2018-05-31T13:55:21.265Z] >>> HTTP REQUEST GET https://cloudresourcemanager.googleapis.com/v1/projects/jsplay-server  
+  
+ Thu May 31 2018 19:25:21 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:23.926Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Serving from '/home/anoop/Workspace/Soliton/jsplay/jsplay-server'...
+[info] 
+[info] i  functions: Preparing to emulate functions.
+[debug] [2018-05-31T13:55:24.317Z] Fetching environment
+[debug] [2018-05-31T13:55:24.318Z] >>> HTTP REQUEST GET https://mobilesdk-pa.googleapis.com/v1/projects/967584813574:getServerAppConfig  
+  
+ Thu May 31 2018 19:25:24 GMT+0530 (IST)
+[debug] [2018-05-31T13:55:26.998Z] <<< HTTP RESPONSE 200
+[debug] [2018-05-31T13:55:26.999Z] Starting @google-cloud/functions-emulator
+[debug] [2018-05-31T13:55:28.028Z] Parsing function triggers
+[info] ✔  functions: ping: http://localhost:5000/jsplay-server/us-central1/ping
+[info] ✔  functions: submit: http://localhost:5000/jsplay-server/us-central1/submit
+[info] ✔  functions: leaderboard: http://localhost:5000/jsplay-server/us-central1/leaderboard
+[info] ✔  functions: leaderboard2: http://localhost:5000/jsplay-server/us-central1/leaderboard2

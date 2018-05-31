@@ -156,11 +156,13 @@ exports.leaderboard2 = functions.https.onRequest((req, res) => {
         }).slice(0, 5).map(submission => {
           return submission.name + ' ' + round(submission.time, 3) + ' msec'
         }).join('\n');
+
+        return;
       });
     });
   }
 
-  chain.then(() => {
+  return chain.then(() => {
     return res.send('Leaderboard at ' + new Date() + '\n\n8 Puzzle:' + reportStr);
   });
 });
@@ -282,6 +284,8 @@ function saveReport(name, id, report) {
     if (report.puzzle8.spec.status === 'passed') {
       return updateLevels(name, id, report.puzzle8.perf);
     }
+
+    return;
   });
 }
 
@@ -303,6 +307,7 @@ function updateLevels(name, id, perfReport) {
             time: levelReport.time.time,
           });
         }
+        return;
       });
     }
   }
