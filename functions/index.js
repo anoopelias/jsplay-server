@@ -154,7 +154,7 @@ exports.leaderboard2 = functions.https.onRequest((req, res) => {
         reportStr += submissions.sort((subA, subB) => {
           return subA.time - subB.time;
         }).slice(0, 5).map(submission => {
-          return submission.name + ' ' + round(submission.time, 3) + ' msec'
+          return submission.name + ' \t\t\tTime:' + round(submission.time, 3) + ' msec'
         }).join('\n');
 
         return;
