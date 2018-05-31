@@ -85,58 +85,6 @@ exports.submit = functions.https.onRequest((req, res) => {
 });
 
 exports.leaderboard = functions.https.onRequest((req, res) => {
-  return db.collection('reports').where("report.puzzle8.spec.status", "==", "passed")
-    .get().then((reports) => {
-      let leaders = [];
-      let topLeaders = [];
-      perfConfig.forEach(() => {
-        leaders.push([])
-        topLeaders.push([])
-      });
-
-      reports.forEach(reportDoc => {
-        let reportData = reportDoc.data();
-        let report = reportData.report;
-
-        if (report.puzzle8.spec.status === 'passed') {
-          report.puzzle8.perf.forEach((levelReport, index) => {
-            if (levelReport.status) {
-              levelReport.name = reportData.name;
-              leaders[index].push(levelReport);
-            }
-          });
-        }
-      });
-
-
-      leaders.forEach((level, levelIndex) => {
-        level.sort((levelReportA, levelReportB) => {
-          return levelReportA.time.time - levelReportB.time.time;
-        });
-
-        let topLeaderNames = [];
-        for (let i=0; i<level.length; i++) {
-          let levelReport = level[i];
-          if (topLeaderNames.indexOf(levelReport.name) === -1) {
-            topLeaderNames.push(levelReport.name);
-            topLeaders[levelIndex].push(levelReport.name + " Time:" +
-              round(levelReport.time.time, 3) + ' milliseconds');
-
-            if (topLeaderNames.length >= 5) {
-              break;
-            }
-          }
-        }
-      });
-
-      let response = topLeaders.map((level, index) => {
-        return 'Level ' + (index + 1) + '\n' + level.join('\n');
-      }).join('\n\n');
-      return res.send('Leaderboard at ' + new Date() + '\n\n8 Puzzle:\n\n' + response);
-    });
-});
-
-exports.leaderboard2 = functions.https.onRequest((req, res) => {
   let chain = Promise.resolve();
   let reportStr = '';
 
