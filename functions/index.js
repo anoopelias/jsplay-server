@@ -136,6 +136,36 @@ exports.leaderboard = functions.https.onRequest((req, res) => {
     });
 });
 
+exports.leaderboard2 = functions.https.onRequest((req, res) => {
+  let chain = Promise.resolve();
+  let reportStr = '';
+
+  for (let i=0; i<perfConfig.length; i++) {
+    let level = perfConfig[i];
+
+    chain = chain.then(() => {
+      return db.collection('levels/puzzle8/level' + level.number).get().then((submissionDocs) => {
+        let submissions = [];
+        submissionDocs.forEach(submissionDoc => {
+          submissions.push(submissionDoc.data());
+        });
+
+        reportStr += '\n\nLevel ' + level.number + '\n';
+        reportStr += submissions.sort((subA, subB) => {
+          return subA.time - subB.time;
+        }).slice(0, 5).map(submission => {
+          return submission.name + ' ' + round(submission.time, 3) + ' msec'
+        }).join('\n');
+      });
+    });
+  }
+
+  chain.then(() => {
+    return res.send('Leaderboard at ' + new Date() + '\n\n8 Puzzle:' + reportStr);
+  });
+});
+
+
 function createWorkspace(fileString, question) {
   const temp = tempy.directory();
 
@@ -225,11 +255,7 @@ function process(files, name, id) {
   }
 
   return chain.then(() => {
-    return db.collection('reports').add({
-      name: name,
-      submissionId: id,
-      report: report
-    });
+    return saveReport(name, id, report);
   }).then(() => reportStr)
   .catch((err) => {
 
@@ -245,6 +271,41 @@ function process(files, name, id) {
       errMessage: message,
     }).then(() => message);
   });
+}
+
+function saveReport(name, id, report) {
+  return db.collection('reports').add({
+    name: name,
+    submissionId: id,
+    report: report
+  }).then(() => {
+    if (report.puzzle8.spec.status === 'passed') {
+      return updateLevels(name, id, report.puzzle8.perf);
+    }
+  });
+}
+
+function updateLevels(name, id, perfReport) {
+
+  let chain = Promise.resolve();
+  for (let levelReport of perfReport) {
+    if (levelReport.status) {
+      const levelDocRef = db.doc('levels/puzzle8/level' + levelReport.number + '/' + name);
+      chain = chain.then(() => {
+        return levelDocRef.get();
+      }).then(levelDoc => {
+        let levelData = levelDoc.data();
+        if (!levelData || levelData.time > levelReport.time.time) {
+          console.log('Updating level time', name, levelReport.number, levelReport.time.time, id);
+          return levelDocRef.set({
+            name: name,
+            submissionId: id,
+            time: levelReport.time.time,
+          });
+        }
+      });
+    }
+  }
 }
 
 function readInput(filename) {
