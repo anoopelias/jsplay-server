@@ -309,6 +309,7 @@ function runPerf(question, file) {
 function runPerfLevel(question, level, func) {
   return readInput(question.name + '/' + level.file).then(input => {
     input.board = input.data;
+    input.length = input.board.length;
     let levelReport = {};
 
     levelReport.number = level.number;

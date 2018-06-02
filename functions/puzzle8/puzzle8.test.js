@@ -78,6 +78,7 @@ const boards4 = [{
 describe('8 Puzzle', () => {
   it('should solve a 3x3 board', () => {
     const input = {};
+    input.length = 3;
     input.board = [
       [0, 1, 3],
       [4, 2, 5],
@@ -92,6 +93,7 @@ describe('8 Puzzle', () => {
 
   it('should return null for a board that cannot be solved', () => {
     const input = {};
+    input.length = 2;
     input.board = [
       [1, 3],
       [2, 0]
@@ -102,6 +104,7 @@ describe('8 Puzzle', () => {
 
   it('should solve a single element board', () => {
     const input = {};
+    input.length = 1;
     input.board = [
       [0]
     ];
@@ -111,6 +114,7 @@ describe('8 Puzzle', () => {
 
   it('should solve a board of size 2', () => {
     const input = {};
+    input.length = 2;
     input.board = [
       [3, 1],
       [2, 0]
@@ -124,6 +128,7 @@ describe('8 Puzzle', () => {
 
   it('should return empty array for a solved board', () => {
     const input = {};
+    input.length = 3;
     input.board = [
       [1, 2, 3],
       [4, 5, 6],
@@ -137,7 +142,8 @@ describe('8 Puzzle', () => {
     for (let i = 0; i < boards3.length; i++) {
       const board3 = boards3[i];
       const output = puzzle8({
-        board: board3.board
+        board: board3.board,
+        length: 3,
       });
 
       output.push(puzzle8Lib.finalBoard(board3.board.length));
@@ -150,7 +156,8 @@ describe('8 Puzzle', () => {
     for (let i = 0; i < boards4.length; i++) {
       const board4 = boards4[i];
       const output = puzzle8({
-        board: board4.board
+        board: board4.board,
+        length: 4,
       });
 
       output.push(puzzle8Lib.finalBoard(board4.board.length));
