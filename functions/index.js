@@ -39,8 +39,14 @@ const perfConfig = [{
   number: 3,
   file: 'input8Puzzle4_60.txt',
   description: 'size 4 board with 60 shuffles',
-  maxTime: 2500,
+  maxTime: 600,
   outputLen: 22,
+}, {
+  number: 4,
+  file: 'input8Puzzle4_100.txt',
+  description: 'size 4 board with 100 shuffles',
+  maxTime: 15000,
+  outputLen: 28,
 }];
 
 exports.ping = functions.https.onRequest((req, res) => {
@@ -346,7 +352,7 @@ function timeBest(command, level) {
   let timeout = false;
 
   // Find best of 5
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 1; i++) {
     let result = time(command, level.outputLen);
     times.push(result.time);
 
