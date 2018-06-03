@@ -39,7 +39,7 @@ const perfConfig = [{
   number: 3,
   file: 'input8Puzzle4_60.txt',
   description: 'size 4 board with 60 shuffles',
-  maxTime: 2500,
+  maxTime: 600,
   outputLen: 22,
 }];
 
@@ -330,7 +330,7 @@ function strTimeReport(report, maxTime) {
   }
 
   if (!report.success) {
-    return "Failed";
+    return "Failed (Incorrect Output)";
   }
 
   if (report.timeout) {
