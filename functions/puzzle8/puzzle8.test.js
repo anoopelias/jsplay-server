@@ -73,6 +73,14 @@ const boards4 = [{
     [13, 14, 11, 15]
   ],
   solutionSize: 9
+}, {
+  board: [
+   [1, 2, 3, 4],
+   [5, 6, 7, 8],
+   [15, 9, 14, 11],
+   [10, 0, 13, 12]
+  ],
+  solutionSize: 15
 }, ];
 
 describe('8 Puzzle', () => {
