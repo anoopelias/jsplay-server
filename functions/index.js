@@ -352,7 +352,7 @@ function timeBest(command, level) {
   let timeout = false;
 
   // Find best of 5
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < 5; i++) {
     let result = time(command, level.outputLen);
     times.push(result.time);
 
