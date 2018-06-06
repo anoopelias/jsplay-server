@@ -39,6 +39,20 @@ const boards3 = [{
     [7, 8, 6]
   ],
   solutionSize: 9
+}, {
+  board: [
+    [1, 5, 2],
+    [7, 0, 3],
+    [8, 4, 6]
+  ],
+  solutionSize: 9
+}, {
+  board: [
+    [5, 1, 3],
+    [2, 7, 0],
+    [4, 8, 6]
+  ],
+  solutionSize: 12
 }, ];
 
 const boards4 = [{

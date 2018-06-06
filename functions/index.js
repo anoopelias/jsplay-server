@@ -336,7 +336,7 @@ function strTimeReport(report, maxTime) {
   }
 
   if (!report.success) {
-    return "Failed";
+    return "Failed (Incorrect Output)";
   }
 
   if (report.timeout) {
